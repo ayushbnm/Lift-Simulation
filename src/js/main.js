@@ -32,6 +32,10 @@ class Lift {
         const liftSpacing = 100; // Adjust this value to control the spacing between lifts
         lift.style.left = `${this.id * liftSpacing}px`; // Space lifts horizontally
     
+        // Initialize lift position to the ground floor (first floor)
+        const floorHeight = 80; // This should match the height of the .floor element in CSS
+        lift.style.transform = `translateY(0px)`; // Start at the ground floor (0 offset)
+    
         return lift;
     }
     
@@ -50,12 +54,22 @@ class Lift {
     }
 
     moveToFloor(targetFloor) {
-        this.busy = true;
-        const distance = Math.abs(targetFloor - this.currentFloor);
-        const floorHeight = 80; // This should match the height of the .floor element in CSS
+        // Ensure the target floor is within the valid range
+        if (targetFloor < 1 || targetFloor > liftStore.floors) {
+            console.error(`Invalid target floor: ${targetFloor}. It should be between 1 and ${liftStore.floors}.`);
+            this.processQueue(); // Skip the invalid floor and continue with the queue
+            return;
+        }
     
-        // Calculate the translateY value based on the target floor and floor height
-        this.element.style.transform = `translateY(${((targetFloor-1) * floorHeight)}px)`;
+        this.busy = true;
+        const distance = Math.abs(targetFloor - this.currentFloor); // Calculate the number of floors to travel
+        const floorHeight = 80; // This should match the height of the .floor element in CSS
+        const speedPerFloor = 1000; // 1 second per floor (adjusted to 1000ms for more accurate timing)
+    
+        // Calculate the translateY value to move the lift to the correct floor
+        const targetPosition = (targetFloor - 1) * floorHeight;
+        this.element.style.transitionDuration = `${distance * speedPerFloor / 1000}s`; // Set the transition duration based on the number of floors
+        this.element.style.transform = `translateY(-${targetPosition}px)`; // Adjust for lift movement
     
         setTimeout(() => {
             this.currentFloor = targetFloor;
@@ -67,10 +81,13 @@ class Lift {
                 setTimeout(() => {
                     this.busy = false;
                     this.processQueue();
-                }, 2500);
-            }, 2500);
-        }, distance * 2000);
+                }, 2500); // Time for doors to close
+            }, 2500); // Time for doors to stay open
+        }, distance * speedPerFloor); // Time to move the lift to the target floor
     }
+    
+    
+    
     
 
     openDoors() {
@@ -88,7 +105,7 @@ class Lift {
     }
 }
  
-// Function to create and append floors
+// Function to call the lift
 function callLift(floorNumber, direction) {
     let closestLift = null;
     let closestDistance = Infinity;
@@ -108,16 +125,13 @@ function callLift(floorNumber, direction) {
         closestLift.addToQueue(floorNumber);
     }
 }
+
 // Function to create and append floors
 function createFloors(building, numberOfFloors) {
-    console.log("create floors function",numberOfFloors);
-    
     for (let i = 0; i < numberOfFloors; i++) {
         const floor = document.createElement('div');
         floor.className = 'floor';
         floor.dataset.floorNumber = i + 1;
-        // floor.style.paddingTop=`${i*60}px`
-       // floor.style.top=`${i*200}px`
 
         const buttons = document.createElement('div');
         buttons.className = 'floor-buttons';
@@ -139,42 +153,20 @@ function createFloors(building, numberOfFloors) {
     }
 }
 
-// Call lift function
-function callLift(floorNumber, direction) {
-    let closestLift = null;
-    let closestDistance = Infinity;
-
-    liftStore.lifts.forEach((lift) => {
-        const distance = direction === 'up'
-            ? Math.max(lift.currentFloor - floorNumber, 0) // Distance only if going up
-            : Math.max(floorNumber - lift.currentFloor, 0); // Distance only if going down
-        
-        if (!lift.busy && distance < closestDistance) {
-            closestDistance = distance;
-            closestLift = lift;
-        }
-    });
-
-    if (closestLift) {
-        closestLift.addToQueue(floorNumber);
-    }
-}
-
 // Function to initialize the building
 function initializeBuilding(numberOfLifts, numberOfFloors) {
     liftStore.lifts = [];
     liftStore.floors = numberOfFloors;
-    console.log("intialize building",numberOfFloors);
     
     const building = document.querySelector('.building');
     building.innerHTML = ''; // Clear previous building content
     
      // Set the width of the building based on the number of lifts
      const liftWidth = 60; // Width of each lift
-     const liftSpacing = 100; // Spacing between lifts (adjust this as needed)
+     const liftSpacing = 100; // Spacing between lifts
      const buildingWidth = numberOfLifts * liftSpacing; // Total width based on the number of lifts
      
-     building.style.width = `${buildingWidth+120}px`; 
+     building.style.width = `${buildingWidth + 120}px`; 
 
     createFloors(building, numberOfFloors); // Create and append floors
 
@@ -182,11 +174,12 @@ function initializeBuilding(numberOfLifts, numberOfFloors) {
     for (let i = 0; i < numberOfLifts; i++) {
         const lift = new Lift(i + 1);
         liftStore.lifts.push(lift);
-        building.children[0].appendChild(lift.element);
+        building.children[1].appendChild(lift.element);
         console.log("Lift Created: ", lift); // Place lift on the ground floor
     }
 }
 
+// Event listener for generating the building
 const generateBuildingButton = document.getElementById('generate-building');
 const buildingContainer = document.querySelector('.building');
 
@@ -194,8 +187,7 @@ generateBuildingButton.addEventListener('click', () => {
     // Get the values from the input fields
     const totalFloors = parseInt(document.getElementById('total-floors').value);
     const totalLifts = parseInt(document.getElementById('total-lifts').value);
-   console.log("button clicked",totalFloors);
-   
+
     // Validate the inputs
     if (isNaN(totalFloors) || isNaN(totalLifts) || totalFloors <= 0 || totalLifts <= 0) {
         alert('Please enter valid numbers for floors and lifts.');
@@ -203,7 +195,5 @@ generateBuildingButton.addEventListener('click', () => {
     }
 
     // Call the initializeBuilding function with the user inputs
-    initializeBuilding( totalLifts,totalFloors);
+    initializeBuilding(totalLifts, totalFloors);
 });
-
-
