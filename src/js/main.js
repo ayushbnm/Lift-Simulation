@@ -55,7 +55,7 @@ class Lift {
         const floorHeight = 80; // This should match the height of the .floor element in CSS
     
         // Calculate the translateY value based on the target floor and floor height
-        this.element.style.transform = `translateY(-${((targetFloor-1) * floorHeight)}px)`;
+        this.element.style.transform = `translateY(${((targetFloor-1) * floorHeight)}px)`;
     
         setTimeout(() => {
             this.currentFloor = targetFloor;
