@@ -63,28 +63,45 @@ class Lift {
     
         this.busy = true;
         const distance = Math.abs(targetFloor - this.currentFloor); // Calculate the number of floors to travel
-        const floorHeight = 80; // This should match the height of the .floor element in CSS
-        const speedPerFloor = 1000; // 1 second per floor (adjusted to 1000ms for more accurate timing)
+        const floorHeight = 60; // This should match the height of the .floor element in CSS
+        const speedPerFloor = 2000; // 2 seconds per floor
     
-        // Calculate the translateY value to move the lift to the correct floor
+        // Calculate the exact translateY value to move the lift to the correct position, aligning with the floor surface
         const targetPosition = (targetFloor - 1) * floorHeight;
-        this.element.style.transitionDuration = `${distance * speedPerFloor / 1000}s`; // Set the transition duration based on the number of floors
-        this.element.style.transform = `translateY(-${targetPosition}px)`; // Adjust for lift movement
     
+        const transitionDuration = `${distance * speedPerFloor / 1000}s`; // Set the transition duration based on the number of floors
+    
+        // Debugging output
+        console.log(`Moving lift ${this.id} to floor ${targetFloor}`);
+        console.log(`Target position: ${targetPosition}px`);
+        console.log(`Transition duration: ${transitionDuration}`);
+    
+        // Ensure the lift stops accurately at the target floor surface
+        this.element.style.transitionDuration = transitionDuration; // Set the transition duration
+        this.element.style.transform = `translateY(-${targetPosition}px)`; // Move the lift to the target floor
+    
+        // Wait for the lift to reach the target floor
         setTimeout(() => {
-            this.currentFloor = targetFloor;
-            this.element.dataset.currentFloor = targetFloor;
-    
-            this.openDoors();
+            this.currentFloor = targetFloor; // Update the lift's current floor to the target floor
+            this.element.dataset.currentFloor = targetFloor; // Update the data attribute for the current floor
+        
+            this.openDoors(); // Open the doors once the lift reaches the target floor
             setTimeout(() => {
-                this.closeDoors();
+                this.closeDoors(); // Close the doors after a delay
                 setTimeout(() => {
-                    this.busy = false;
-                    this.processQueue();
+                    this.busy = false; // Mark the lift as not busy
+                    this.processQueue(); // Process the next request in the queue
                 }, 2500); // Time for doors to close
             }, 2500); // Time for doors to stay open
         }, distance * speedPerFloor); // Time to move the lift to the target floor
     }
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -127,6 +144,7 @@ function callLift(floorNumber, direction) {
 }
 
 // Function to create and append floors
+// Function to create and append floors
 function createFloors(building, numberOfFloors) {
     for (let i = 0; i < numberOfFloors; i++) {
         const floor = document.createElement('div');
@@ -136,22 +154,32 @@ function createFloors(building, numberOfFloors) {
         const buttons = document.createElement('div');
         buttons.className = 'floor-buttons';
 
-        // Create "Up" button
-        const upButton = document.createElement('button');
-        upButton.innerText = `Up`;
-        upButton.addEventListener('click', () => callLift(i + 1, 'up'));
+        // For the ground floor (i == 0), only add the "Up" button
+        if (i === 0) {
+            const upButton = document.createElement('button');
+            upButton.innerText = `Up`;
+            upButton.addEventListener('click', () => callLift(i + 1, 'up'));
+            buttons.appendChild(upButton);
+        } else {
+            // Create "Up" button
+            const upButton = document.createElement('button');
+            upButton.innerText = `Up`;
+            upButton.addEventListener('click', () => callLift(i + 1, 'up'));
 
-        // Create "Down" button
-        const downButton = document.createElement('button');
-        downButton.innerText = `Down`;
-        downButton.addEventListener('click', () => callLift(i + 1, 'down'));
+            // Create "Down" button
+            const downButton = document.createElement('button');
+            downButton.innerText = `Down`;
+            downButton.addEventListener('click', () => callLift(i + 1, 'down'));
 
-        buttons.appendChild(upButton);
-        buttons.appendChild(downButton);
+            buttons.appendChild(upButton);
+            buttons.appendChild(downButton);
+        }
+
         floor.appendChild(buttons);
         building.appendChild(floor);
     }
 }
+
 
 // Function to initialize the building
 function initializeBuilding(numberOfLifts, numberOfFloors) {
@@ -174,7 +202,7 @@ function initializeBuilding(numberOfLifts, numberOfFloors) {
     for (let i = 0; i < numberOfLifts; i++) {
         const lift = new Lift(i + 1);
         liftStore.lifts.push(lift);
-        building.children[1].appendChild(lift.element);
+        building.children[0].appendChild(lift.element);
         console.log("Lift Created: ", lift); // Place lift on the ground floor
     }
 }

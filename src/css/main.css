@@ -22,7 +22,7 @@
     width: max-content; 
     height: 100%;
     width:100%;
-    border: 2px solid green;
+   
    
 }
 
@@ -31,14 +31,15 @@
     width: 40px;  /* Adjust width as needed */
     position: absolute;
     bottom: 0;    /* Ensure lift starts from the bottom */
-    transition: transform 1s ease; /* Smooth movement */
+    transition: transform 2s ease; /* Smooth movement */
 }
 
 .floor {
-    height: 80px; /* This should match the floorHeight value in JavaScript */
+    height: 60px; /* This should match the floorHeight value in JavaScript */
     position: relative;
     width: 100%;  /* Ensure the floor spans the full width */
-    border-bottom: 0.1px solid black;
+    
+    border-top:0.1px solid red;
 }
 
 
