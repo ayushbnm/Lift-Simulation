@@ -52,7 +52,6 @@ class Lift {
         const targetFloor = this.queue.shift();
         this.moveToFloor(targetFloor);
     }
-
     moveToFloor(targetFloor) {
         // Ensure the target floor is within the valid range
         if (targetFloor < 1 || targetFloor > liftStore.floors) {
@@ -77,14 +76,14 @@ class Lift {
         console.log(`Transition duration: ${transitionDuration}`);
     
         // Ensure the lift stops accurately at the target floor surface
-        this.element.style.transitionDuration = transitionDuration; // Set the transition duration
+        this.element.style.transition = `transform ${transitionDuration} linear`; // Set the transition duration
         this.element.style.transform = `translateY(-${targetPosition}px)`; // Move the lift to the target floor
     
         // Wait for the lift to reach the target floor
         setTimeout(() => {
             this.currentFloor = targetFloor; // Update the lift's current floor to the target floor
             this.element.dataset.currentFloor = targetFloor; // Update the data attribute for the current floor
-        
+    
             this.openDoors(); // Open the doors once the lift reaches the target floor
             setTimeout(() => {
                 this.closeDoors(); // Close the doors after a delay
@@ -128,21 +127,26 @@ function callLift(floorNumber, direction) {
     let closestDistance = Infinity;
 
     liftStore.lifts.forEach((lift) => {
-        const distance = direction === 'up'
-            ? Math.max(lift.currentFloor - floorNumber, 0) // Distance only if going up
-            : Math.max(floorNumber - lift.currentFloor, 0); // Distance only if going down
+        // Calculate the distance between the lift's current floor and the requested floor
+        const distance = Math.abs(lift.currentFloor - floorNumber);
         
+        // Check if the lift is not busy and closer than the current closest lift
         if (!lift.busy && distance < closestDistance) {
             closestDistance = distance;
             closestLift = lift;
         }
     });
 
+    // If a suitable lift is found, add the requested floor to its queue
     if (closestLift) {
         closestLift.addToQueue(floorNumber);
+    } else {
+        console.log('All lifts are busy. Please wait.');
     }
 }
 
+
+// Function to create and append floors
 // Function to create and append floors
 // Function to create and append floors
 function createFloors(building, numberOfFloors) {
@@ -151,22 +155,33 @@ function createFloors(building, numberOfFloors) {
         floor.className = 'floor';
         floor.dataset.floorNumber = i + 1;
 
+        // Create a floor number label
+        const floorNumberLabel = document.createElement('div');
+        floorNumberLabel.className = 'floor-number';
+        floorNumberLabel.innerText = `Floor ${i + 1}`;
+
+        // Create the button container
         const buttons = document.createElement('div');
         buttons.className = 'floor-buttons';
 
-        // For the ground floor (i == 0), only add the "Up" button
         if (i === 0) {
+            // For the ground floor, only add the "Up" button
             const upButton = document.createElement('button');
             upButton.innerText = `Up`;
             upButton.addEventListener('click', () => callLift(i + 1, 'up'));
             buttons.appendChild(upButton);
+        } else if (i === numberOfFloors - 1) {
+            // For the topmost floor, only add the "Down" button
+            const downButton = document.createElement('button');
+            downButton.innerText = `Down`;
+            downButton.addEventListener('click', () => callLift(i + 1, 'down'));
+            buttons.appendChild(downButton);
         } else {
-            // Create "Up" button
+            // For all other floors, add both "Up" and "Down" buttons
             const upButton = document.createElement('button');
             upButton.innerText = `Up`;
             upButton.addEventListener('click', () => callLift(i + 1, 'up'));
 
-            // Create "Down" button
             const downButton = document.createElement('button');
             downButton.innerText = `Down`;
             downButton.addEventListener('click', () => callLift(i + 1, 'down'));
@@ -175,10 +190,14 @@ function createFloors(building, numberOfFloors) {
             buttons.appendChild(downButton);
         }
 
+        floor.appendChild(floorNumberLabel); // Add the floor number label
         floor.appendChild(buttons);
         building.appendChild(floor);
     }
+
+
 }
+
 
 
 // Function to initialize the building
@@ -193,7 +212,11 @@ function initializeBuilding(numberOfLifts, numberOfFloors) {
      const liftWidth = 60; // Width of each lift
      const liftSpacing = 100; // Spacing between lifts
      const buildingWidth = numberOfLifts * liftSpacing; // Total width based on the number of lifts
-     
+     if (numberOfFloors === 1) {
+       // alert("No lifts are required when there's only one floor.");
+        createFloors(building, numberOfFloors); // Create and append the single floor
+        return; // Exit the function early, no lifts will be created
+    }
      building.style.width = `${buildingWidth + 120}px`; 
 
     createFloors(building, numberOfFloors); // Create and append floors

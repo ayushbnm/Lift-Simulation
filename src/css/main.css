@@ -3,13 +3,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-     /* Fixed to center the building */
+   
 }
 .building-container{
     display: flex;
     align-items: center;
     justify-content: center;
-   
+    
 }
 .building {
     overflow-y: scroll; 
@@ -22,8 +22,8 @@
     width: max-content; 
     height: 100%;
     width:100%;
-   
-   
+    
+    
 }
 
 .lift {
@@ -40,9 +40,17 @@
     width: 100%;  /* Ensure the floor spans the full width */
     
     border-top:0.1px solid red;
+    
 }
+.floor-numbers {
+   
+     /* Adjust to position the label correctly */
+   
 
-
+}
+.floor:first-of-type{
+    border-bottom: 0.1px solid red;
+}
 .lift-door {
     width: 30px;
     height: 100%; /* Adjust to fill the lift height */
